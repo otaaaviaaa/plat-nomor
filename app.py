@@ -7,7 +7,7 @@ import csv
 import io
 
 from flask import (
-     Flask, render_template, request,
+    Flask, render_template, request,
     redirect, url_for, flash, jsonify, Response
 )
 
@@ -157,6 +157,7 @@ def cek_kendaraan(plat):
 
 
 # DASHBOARD
+
 @app.route("/")
 def dashboard():
     connection = get_db_connection()
@@ -184,6 +185,15 @@ def dashboard():
         total_kendaraan = cursor.fetchone()["total"]
 
         cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM riwayat_masuk
+            WHERE MONTH(tanggal_masuk) = %s
+            AND YEAR(tanggal_masuk) = %s
+        """, (sekarang.month, sekarang.year))
+
+        jumlah_masuk_bulan_ini = cursor.fetchone()["total"]
+
+        cursor.execute("""
             SELECT
                 k.plat_nomor,
                 r.tanggal_masuk,
@@ -201,6 +211,7 @@ def dashboard():
             "dashboard.html",
             jumlah_masuk_hari_ini=jumlah_masuk_hari_ini,
             total_kendaraan=total_kendaraan,
+            jumlah_masuk_bulan_ini=jumlah_masuk_bulan_ini,
             riwayat_terbaru=riwayat_terbaru
         )
 
@@ -211,7 +222,8 @@ def dashboard():
         connection.close()
 
 
-# SCAN
+# SCAN KENDARAAN
+
 @app.route("/scan", methods=["GET", "POST"])
 def scan():
 
@@ -275,11 +287,11 @@ def scan():
         return f"Gagal mencatat kendaraan masuk: {error}"
 
     finally:
-        if connection.is_connected():
-            connection.close()
+        connection.close()
 
 
 # TAMBAH KENDARAAN
+
 @app.route("/tambah-kendaraan", methods=["GET", "POST"])
 def tambah_kendaraan():
 
@@ -298,7 +310,10 @@ def tambah_kendaraan():
     plat_nomor = format_plat(plat_nomor)
 
     if not plat_nomor:
-        flash("Masukkan plat nomor dengan format yang benar.", "danger")
+        flash(
+            "Masukkan plat nomor dengan format yang benar.",
+            "danger"
+        )
         return redirect(url_for("tambah_kendaraan"))
 
     connection = get_db_connection()
@@ -355,11 +370,11 @@ def tambah_kendaraan():
         return f"Gagal menyimpan kendaraan: {error}"
 
     finally:
-        if connection.is_connected():
-            connection.close()
+        connection.close()
 
 
 # PROSES SCAN GAMBAR
+
 @app.route("/proses-scan", methods=["POST"])
 def proses_scan():
 
@@ -427,8 +442,6 @@ def proses_scan():
 
 # RIWAYAT KENDARAAN
 
-# RIWAYAT KENDARAAN
-
 @app.route("/riwayat")
 def riwayat():
     connection = get_db_connection()
@@ -440,8 +453,13 @@ def riwayat():
         cursor = connection.cursor(dictionary=True)
         sekarang = waktu_sekarang()
 
-        bulan = request.args.get("bulan", sekarang.month, type=int)
-        tahun = request.args.get("tahun", sekarang.year, type=int)
+        bulan = request.args.get(
+            "bulan", sekarang.month, type=int
+        )
+
+        tahun = request.args.get(
+            "tahun", sekarang.year, type=int
+        )
 
         if bulan < 1 or bulan > 12:
             bulan = sekarang.month
@@ -495,18 +513,25 @@ def riwayat():
 
         data_riwayat = cursor.fetchall()
 
+        # Mengambil semua tahun yang memiliki data
         cursor.execute("""
             SELECT DISTINCT YEAR(tanggal_masuk) AS tahun
             FROM riwayat_masuk
+            WHERE tanggal_masuk IS NOT NULL
             ORDER BY tahun DESC
         """)
 
-        tahun_list = [data["tahun"] for data in cursor.fetchall()]
+        tahun_database = [
+            data["tahun"]
+            for data in cursor.fetchall()
+            if data["tahun"] is not None
+        ]
 
-        if tahun not in tahun_list:
-            tahun_list.append(tahun)
-
-        tahun_list.sort(reverse=True)
+        # Menambahkan tahun sekarang dan tahun yang dipilih
+        tahun_list = sorted(
+            set(tahun_database + [sekarang.year, tahun]),
+            reverse=True
+        )
 
         bulan_list = [
             {"angka": i, "nama": nama_bulan[i - 1]}
@@ -548,8 +573,13 @@ def export_csv():
         semua = request.args.get("semua", "0")
         sekarang = waktu_sekarang()
 
-        bulan = request.args.get("bulan", sekarang.month, type=int)
-        tahun = request.args.get("tahun", sekarang.year, type=int)
+        bulan = request.args.get(
+            "bulan", sekarang.month, type=int
+        )
+
+        tahun = request.args.get(
+            "tahun", sekarang.year, type=int
+        )
 
         nama_bulan = [
             "Januari", "Februari", "Maret", "April",
@@ -630,8 +660,8 @@ def export_csv():
         connection.close()
 
 
-
 # IMPORT CSV
+
 @app.route("/import-csv", methods=["POST"])
 def import_csv():
 
@@ -660,7 +690,10 @@ def import_csv():
         pembaca = csv.DictReader(io.StringIO(isi_file))
 
         if not pembaca.fieldnames:
-            flash("File CSV kosong atau tidak memiliki judul kolom.", "danger")
+            flash(
+                "File CSV kosong atau tidak memiliki judul kolom.",
+                "danger"
+            )
             return redirect(url_for("riwayat"))
 
         kolom = {
@@ -773,7 +806,6 @@ def import_csv():
         connection.close()
 
     return redirect(url_for("riwayat"))
-
 
 
 if __name__ == "__main__":

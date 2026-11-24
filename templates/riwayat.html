@@ -4,206 +4,345 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Riwayat Kendaraan | TruckScan</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/riwayat.css') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
 <div class="app-container">
 
-    <aside class="sidebar">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
         <div class="brand">
             <div class="brand-icon">
-                <i class="bi bi-truck-front-fill"></i>
+                <i class="fa-solid fa-truck-fast"></i>
             </div>
-            <div>
+
+            <div class="brand-text">
                 <h2>TruckScan</h2>
-                <span>Vehicle Monitoring</span>
+                <span>Vehicle Management</span>
             </div>
         </div>
 
-        <div class="menu-label">MENU UTAMA</div>
+        <div class="menu-heading">MENU UTAMA</div>
 
         <nav class="sidebar-menu">
+
             <a href="{{ url_for('dashboard') }}" class="menu-item">
-                <i class="bi bi-grid-1x2-fill"></i>
+                <i class="fa-solid fa-house"></i>
                 <span>Dashboard</span>
             </a>
 
-            <a href="{{ url_for('riwayat') }}" class="menu-item active">
-                <i class="bi bi-clock-history"></i>
-                <span>Riwayat</span>
+            <a href="{{ url_for('scan') }}" class="menu-item">
+                <i class="fa-solid fa-camera"></i>
+                <span>Scan Kendaraan</span>
             </a>
+
+            <a href="{{ url_for('riwayat') }}" class="menu-item active">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Riwayat Kendaraan</span>
+            </a>
+
         </nav>
 
         <div class="sidebar-footer">
-            <span class="system-dot"></span>
+            <div class="footer-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+
             <div>
                 <strong>TruckScan System</strong>
-                <small>Monitoring Kendaraan</small>
+                <small>Sistem Pencatatan Kendaraan</small>
             </div>
         </div>
+
     </aside>
 
+
+    <!-- MAIN CONTENT -->
     <main class="main-content">
 
+        <!-- TOPBAR -->
         <header class="topbar">
-            <div>
-                <h1>Riwayat Kendaraan</h1>
-                <p>Daftar seluruh kendaraan yang pernah masuk ke area tambang.</p>
+
+            <div class="topbar-left">
+                <button class="sidebar-toggle" id="sidebarToggle" type="button">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div>
+                    <h3>Riwayat Kendaraan</h3>
+                    <p>Kelola dan pantau seluruh kendaraan yang masuk.</p>
+                </div>
             </div>
 
-            <a href="{{ url_for('dashboard') }}" class="back-button">
-                <i class="bi bi-arrow-left"></i>
-                Dashboard
-            </a>
+            <div class="topbar-right">
+                <div class="date-display">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="currentDate"></span>
+                </div>
+
+                <div class="page-label">
+                    <i class="fa-solid fa-box-archive"></i>
+                    <span>Arsip Kendaraan</span>
+                </div>
+            </div>
+
         </header>
 
-        <!-- NOTIFIKASI -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert-message {{ category }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+
+        <!-- PAGE HEADING -->
+        <section class="page-heading">
+            <div>
+                <span class="breadcrumb">Dashboard / Riwayat</span>
+                <h1>Riwayat Kendaraan</h1>
+                <p>Daftar seluruh aktivitas kendaraan yang pernah masuk ke area tambang.</p>
+            </div>
+        </section>
+
+
+        <!-- HERO BANNER -->
+        <section class="hero-banner">
+
+            <div class="hero-content">
+                <span class="hero-label">
+                    <i class="fa-solid fa-chart-line"></i>
+                    DATA KENDARAAN
+                </span>
+
+                <h2>Pantau Riwayat Kendaraan Masuk</h2>
+
+                <p>
+                    Semua data kendaraan yang masuk tersimpan secara terstruktur
+                    dan dapat dilihat berdasarkan bulan maupun tahun.
+                </p>
+            </div>
+
+            <div class="hero-icon">
+                <i class="fa-solid fa-truck-ramp-box"></i>
+            </div>
+
+        </section>
+
 
         <!-- STATISTIK -->
-        <section class="statistics">
+        <section class="stats-grid">
 
             <div class="stat-card">
-                <div>
-                    <span>Total Seluruh Riwayat</span>
+                <div class="stat-icon blue">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+
+                <div class="stat-info">
+                    <span>Total Riwayat</span>
                     <h2>{{ total_riwayat }}</h2>
-                    <small>Seluruh catatan kendaraan masuk</small>
-                </div>
-                <div class="stat-icon navy">
-                    <i class="bi bi-journal-text"></i>
+                    <small>Seluruh data kendaraan masuk</small>
                 </div>
             </div>
 
+
             <div class="stat-card">
-                <div>
-                    <span>Kendaraan Masuk Hari Ini</span>
+                <div class="stat-icon green">
+                    <i class="fa-solid fa-truck"></i>
+                </div>
+
+                <div class="stat-info">
+                    <span>Masuk Hari Ini</span>
                     <h2>{{ jumlah_masuk_hari_ini }}</h2>
-                    <small>Catatan masuk pada hari ini</small>
-                </div>
-                <div class="stat-icon blue">
-                    <i class="bi bi-truck"></i>
+                    <small>Aktivitas kendaraan hari ini</small>
                 </div>
             </div>
 
+
             <div class="stat-card">
-                <div>
-                    <span>Total Masuk Bulan {{ nama_bulan }}</span>
-                    <h2>{{ jumlah_masuk_bulan }}</h2>
-                    <small>{{ tahun }} - {{ nama_bulan }}</small>
+                <div class="stat-icon orange">
+                    <i class="fa-solid fa-calendar-days"></i>
                 </div>
-                <div class="stat-icon blue">
-                    <i class="bi bi-calendar-month"></i>
+
+                <div class="stat-info">
+                    <span>Masuk {{ nama_bulan }}</span>
+                    <h2>{{ jumlah_masuk_bulan }}</h2>
+                    <small>Data pada tahun {{ tahun }}</small>
                 </div>
             </div>
 
         </section>
 
-        <!-- ARSIP BULANAN -->
+
+        <!-- NOTIFIKASI -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="notification-container">
+                    {% for category, message in messages %}
+                        <div class="notification {{ category }}">
+                            <i class="fa-solid
+                                {% if category == 'success' %}
+                                    fa-circle-check
+                                {% else %}
+                                    fa-circle-exclamation
+                                {% endif %}
+                            "></i>
+
+                            <span>{{ message }}</span>
+
+                            <button type="button" class="close-notification">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+
+        <!-- RIWAYAT CARD -->
         <section class="history-card">
 
             <div class="history-header">
                 <div>
-                    <h2>Arsip Riwayat Kendaraan</h2>
-                    <p>Pilih bulan dan tahun untuk melihat catatan kendaraan masuk.</p>
+                    <h2>Data Riwayat Masuk</h2>
+                    <p>Lihat dan kelola catatan kendaraan berdasarkan periode.</p>
+                </div>
+
+                <div class="history-header-icon">
+                    <i class="fa-solid fa-list-ul"></i>
                 </div>
             </div>
 
-            <div class="archive-filter">
 
-                <form action="{{ url_for('riwayat') }}" method="GET" class="filter-form">
+            <!-- FILTER -->
+            <form action="{{ url_for('riwayat') }}" method="GET" class="filter-section">
 
-                    <div class="filter-group">
-                        <label for="bulan">Pilih Bulan</label>
-                        <select name="bulan" id="bulan">
+                <div class="filter-group">
+
+                    <div class="filter-item">
+                        <label for="filterBulan">Bulan</label>
+
+                        <select name="bulan" id="filterBulan">
                             {% for item in bulan_list %}
                                 <option value="{{ item.angka }}"
-                                    {% if item.angka == bulan %}selected{% endif %}>
+                                    {% if bulan == item.angka %}selected{% endif %}>
                                     {{ item.nama }}
                                 </option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <div class="filter-group">
-                        <label for="tahun">Pilih Tahun</label>
-                        <select name="tahun" id="tahun">
-                            {% for item in tahun_list %}
-                                <option value="{{ item }}"
-                                    {% if item == tahun %}selected{% endif %}>
-                                    {{ item }}
+
+                    <div class="filter-item">
+                        <label for="filterTahun">Tahun</label>
+
+                        <select name="tahun" id="filterTahun">
+                            {% for t in tahun_list %}
+                                <option value="{{ t }}"
+                                    {% if tahun == t %}selected{% endif %}>
+                                    {{ t }}
                                 </option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <button type="submit" class="filter-button">
-                        <i class="bi bi-funnel"></i>
+
+                    <button type="submit" class="btn-filter">
+                        <i class="fa-solid fa-filter"></i>
                         Tampilkan
                     </button>
 
-                </form>
+                </div>
 
-                <div class="export-actions">
+                <div class="filter-period">
+                    <i class="fa-regular fa-calendar"></i>
+                    Periode: {{ nama_bulan }} {{ tahun }}
+                </div>
 
-                    <a href="{{ url_for('export_csv', bulan=bulan, tahun=tahun) }}"
-                       class="export-button">
-                        <i class="bi bi-file-earmark-spreadsheet"></i>
-                        Ekspor Bulan Ini
+            </form>
+
+
+            <!-- TOOLBAR -->
+            <div class="toolbar">
+
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input
+                        type="text"
+                        id="searchHistory"
+                        placeholder="Cari plat nomor kendaraan..."
+                        autocomplete="off"
+                    >
+
+                    <button type="button" id="clearSearch" title="Hapus pencarian">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+
+                <div class="toolbar-actions">
+
+                    <!-- IMPORT CSV -->
+                    <form
+                        action="{{ url_for('import_csv') }}"
+                        method="POST"
+                        enctype="multipart/form-data"
+                        class="import-form"
+                        id="importForm"
+                    >
+
+                        <input
+                            type="file"
+                            name="file_csv"
+                            id="fileCsv"
+                            accept=".csv"
+                            hidden
+                            required
+                        >
+
+                        <button type="button" class="btn-import" id="btnImport">
+                            <i class="fa-solid fa-file-import"></i>
+                            Import CSV
+                        </button>
+
+                    </form>
+
+
+                    <!-- EXPORT CSV BULAN -->
+                    <a
+                        href="{{ url_for('export_csv', bulan=bulan, tahun=tahun) }}"
+                        class="btn-export"
+                    >
+                        <i class="fa-solid fa-file-csv"></i>
+                        Export Bulan Ini
                     </a>
 
-                    <a href="{{ url_for('export_csv', semua=1) }}"
-                       class="export-all-button">
-                        <i class="bi bi-download"></i>
-                        Ekspor Semua
+
+                    <!-- EXPORT SEMUA -->
+                    <a
+                        href="{{ url_for('export_csv', semua=1) }}"
+                        class="btn-export-all"
+                    >
+                        <i class="fa-solid fa-download"></i>
+                        Export Semua
                     </a>
 
                 </div>
 
             </div>
 
-         
-            <!-- JUDUL TABEL -->
-            <div class="history-header table-title">
-                <div>
-                    <h2>Data Kendaraan Masuk</h2>
-                    <p>
-                        {{ nama_bulan }} {{ tahun }} -
-                        {{ jumlah_masuk_bulan }} catatan kendaraan masuk.
-                    </p>
-                </div>
-            </div>
-
-            <!-- PENCARIAN -->
-            <div class="search-area">
-                <i class="bi bi-search"></i>
-                <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="Cari berdasarkan plat nomor..."
-                >
-            </div>
 
             <!-- TABEL -->
             <div class="table-container">
 
-                <table id="historyTable">
+                <table class="history-table" id="historyTable">
 
                     <thead>
                         <tr>
-                            <th>No.</th>
+                            <th>No</th>
                             <th>Plat Nomor</th>
                             <th>Tanggal Masuk</th>
                             <th>Jam Masuk</th>
@@ -215,35 +354,64 @@
 
                         {% for data in data_riwayat %}
 
-                        <tr>
-                            <td>{{ loop.index }}</td>
+                            <tr>
+                                <td>{{ loop.index }}</td>
 
-                            <td>
-                                <span class="plate-number">
-                                    {{ data.plat_nomor }}
-                                </span>
-                            </td>
+                                <td>
+                                    <div class="plate-cell">
+                                        <div class="plate-icon">
+                                            <i class="fa-solid fa-truck"></i>
+                                        </div>
 
-                            <td>{{ data.tanggal_masuk }}</td>
+                                        <span class="plate-number">
+                                            {{ data.plat_nomor }}
+                                        </span>
+                                    </div>
+                                </td>
 
-                            <td>{{ data.jam_masuk }}</td>
+                                <td>
+                                    <div class="date-cell">
+                                        <i class="fa-regular fa-calendar"></i>
 
-                            <td>
-                                <span class="status-badge">
-                                    <span></span>
-                                    Masuk
-                                </span>
-                            </td>
-                        </tr>
+                                        {{ data.tanggal_masuk.strftime('%d-%m-%Y') }}
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="time-cell">
+                                        <i class="fa-regular fa-clock"></i>
+
+                                        {{ data.jam_masuk }}
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="status-badge">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        Berhasil Masuk
+                                    </span>
+                                </td>
+
+                            </tr>
 
                         {% else %}
 
-                        <tr>
-                            <td colspan="5" class="empty-data">
-                                <i class="bi bi-inbox"></i>
-                                <p>Belum ada riwayat kendaraan pada bulan ini.</p>
-                            </td>
-                        </tr>
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">
+                                            <i class="fa-solid fa-folder-open"></i>
+                                        </div>
+
+                                        <h3>Belum Ada Riwayat</h3>
+
+                                        <p>
+                                            Tidak ada kendaraan yang tercatat masuk
+                                            pada {{ nama_bulan }} {{ tahun }}.
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
 
                         {% endfor %}
 
@@ -251,63 +419,41 @@
 
                 </table>
 
+                <div class="no-search-result" id="noSearchResult">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <p>Plat nomor yang dicari tidak ditemukan.</p>
+                </div>
+
             </div>
 
+
+            <!-- FOOTER TABEL -->
             <div class="table-footer">
                 <span>
-                    Menampilkan {{ data_riwayat|length }} data riwayat.
+                    Menampilkan <strong id="visibleRows">{{ data_riwayat|length }}</strong>
+                    data riwayat
                 </span>
-                <span>TruckScan Monitoring System</span>
+
+                <span>
+                    <i class="fa-solid fa-shield-halved"></i>
+                    Data tersimpan di database
+                </span>
             </div>
 
         </section>
 
+
+        <!-- FOOTER -->
         <footer class="page-footer">
-            &copy; 2026 TruckScan. Sistem Monitoring Kendaraan Tambang.
+            <p>© 2026 TruckScan. Sistem Pencatatan Kendaraan Masuk.</p>
         </footer>
 
     </main>
 
 </div>
 
-<script>
-   
-const searchInput = document.getElementById("searchInput");
 
-searchInput.addEventListener("input", function () {
-    const keyword = this.value.toLowerCase();
-    const tableRows = document.querySelectorAll("#historyTable tbody tr");
-
-    tableRows.forEach(function (row) {
-        const plate = row.cells[1];
-
-        if (!plate) return;
-
-        row.style.display = plate.textContent
-            .toLowerCase()
-            .includes(keyword) ? "" : "none";
-    });
-});
-
-
-const fileInput = document.getElementById("file_csv");
-const importForm = document.getElementById("importForm");
-
-importButton.addEventListener("click", function () {
-    fileInput.click();
-});
-
-fileInput.addEventListener("change", function () {
-    if (this.files.length > 0) {
-        importButton.innerHTML =
-            '<i class="bi bi-hourglass-split"></i> Mengimpor Data...';
-
-        importButton.disabled = true;
-        importForm.submit();
-    }
-});
-
-</script>
+<script src="{{ url_for('static', filename='js/riwayat.js') }}"></script>
 
 </body>
 </html>
